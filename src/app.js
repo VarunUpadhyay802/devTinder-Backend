@@ -7,7 +7,7 @@ const User = require("./models/user")
 app.use(express.json())
 
 app.post("/signup", async (req, res) => {
-    // //creating a new instance of the User model || just creating  a new user with the data we are getting
+    //creating a new instance of the User model || just creating  a new user with the data we are getting
     const user = new User(req.body);
     try {
         await user.save();
