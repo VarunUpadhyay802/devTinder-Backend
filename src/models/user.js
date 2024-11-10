@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+const validator = require('validator')
 const userSchema = mongoose.Schema({
     firstName: {
         type: String,
@@ -16,7 +16,12 @@ const userSchema = mongoose.Schema({
         required: true,
         unique: true,
         trim: true,
-        lowercase: true
+        lowercase: true,
+        validate(value) {
+            if (!validator.isEmail(value)) {
+                throw new Error("Email is not valid")
+            }
+        }
     },
     password: {
         type: String,
@@ -39,7 +44,12 @@ const userSchema = mongoose.Schema({
     },
     photoUrl: {
         type: String,
-        default: "https://www.refugee-action.org.uk/wp-content/uploads/2016/10/anonymous-user.png"
+        default: "https://www.refugee-action.org.uk/wp-content/uploads/2016/10/anonymous-user.png",
+        validate(value) {
+            if (!validator.isURL(value)) {
+                throw new Error("Not a valid profile url")
+            }
+        }
     },
     skills: {
         type: [String]

@@ -3,17 +3,23 @@ const express = require("express")
 const app = express();
 const port = 4000;
 const connectDB = require("./config/database");
-const User = require("./models/user")
+const User = require("./models/user");
+const validator = require('validator')
 app.use(express.json())
 
 app.post("/signup", async (req, res) => {
     //creating a new instance of the User model || just creating  a new user with the data we are getting
     const user = new User(req.body);
     try {
-        await user.save();
-        res.send("User added successfully")
+        if (validator.isEmail(user?.emailId)) {
+            await user.save();
+            res.send("User added successfully")
+        }else{
+            throw new Error("Email is not valid")
+        }
+
     } catch (err) {
-        res.status(400).send("Error saving the error:" + err.message)
+        res.status(400).send("Error saving the user:" + err.message)
     }
 
 })
@@ -90,13 +96,17 @@ app.delete("/delete", async (req, res) => {
 })
 
 
-app.patch("/user", async (req, res) => {
+app.patch("/user/:userId", async (req, res) => {
     //data that needs to be updated
     const data = req.body;
-    const userId = req.body._id;
+    const userId = req.params?.userId;
 
     try {
-        const ALLOWED_UPDATES = ["userId", "photoUrl", "about", "gender", "age", "skills"];
+        if (data?.skills.length > 10) {
+            throw new Error("Skills cannot be more than 10")
+        }
+        const ALLOWED_UPDATES = ["photoUrl", "about", "gender", "age", "skills"
+        ];
         const isUpdateAllowed = Object.keys(data).every((k) => ALLOWED_UPDATES.includes(k));
 
         if (!isUpdateAllowed) {
@@ -107,7 +117,7 @@ app.patch("/user", async (req, res) => {
             returnDocument: "before",
             runValidators: true,
         });
-        console.log(user);
+        // console.log(user);
         res.send("user updated succesfully");
     } catch (error) {
         res.status(400).send("Something went wrong " + error)
