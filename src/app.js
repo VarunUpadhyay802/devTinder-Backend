@@ -4,32 +4,67 @@ const app = express();
 const port = 4000;
 const connectDB = require("./config/database");
 const User = require("./models/user");
-const validator = require('validator')
+const validator = require('validator');
+const { validateSignUpData, validateEditProfileData } = require("./utils/validation")
+const bcrypt = require("bcrypt")
 app.use(express.json())
 
 app.post("/signup", async (req, res) => {
-    //creating a new instance of the User model || just creating  a new user with the data we are getting
-    const user = new User(req.body);
+
     try {
-        if (validator.isEmail(user?.emailId)) {
-            await user.save();
-            res.send("User added successfully")
-        }else{
-            throw new Error("Email is not valid")
-        }
+        //validation of data
+        validateSignUpData(req);
+
+        const { firstName, lastName, emailId, password } = req.body;
+
+        //encrypting the password
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        const user = new User({
+            firstName, lastName, emailId, password: passwordHash,
+
+        });
+        //always validate inside try catch , because if something fails your code will not be broken
+        await user.save();
+        res.send("User added successfully")
 
     } catch (err) {
-        res.status(400).send("Error saving the user:" + err.message)
+        res.status(400).send("Error signing up  the user:" + err.message)
     }
 
 })
+app.post("/login", async (req, res) => {
 
+    try {
+        const { emailId, password } = req.body;
+        //email sanitization 
+        if (!validator.isEmail(emailId)) {
+            throw new Error("not a chance")
+        }
+        const user = await User.findOne({
+            emailId: emailId
+        })
+        if (!user) {
+            throw new Error ("Invalid credentials")
+        }
+        //comparing the password and password store in db 
+        const isPasswordValid = await bcrypt.compare(password, user?.password);
+        if(isPasswordValid){
+            res.send("Login successful")
+        }else{
+            res.status(401).send("Details Invalid")
+        }
+        
+    } catch (error) {
+        res.status(400).send("Error signing up  the user:" + error);
+    }
+
+})
 app.get("/userByEmail", async (req, res) => {
 
     //extract email from the req 
     const userEmail = req.body.emailId;
     console.log(userEmail)
-
     try {
         const user = await User.findOne({
             emailId: userEmail
@@ -102,14 +137,8 @@ app.patch("/user/:userId", async (req, res) => {
     const userId = req.params?.userId;
 
     try {
-        if (data?.skills.length > 10) {
-            throw new Error("Skills cannot be more than 10")
-        }
-        const ALLOWED_UPDATES = ["photoUrl", "about", "gender", "age", "skills"
-        ];
-        const isUpdateAllowed = Object.keys(data).every((k) => ALLOWED_UPDATES.includes(k));
-
-        if (!isUpdateAllowed) {
+        //validation 
+        if (!validateEditProfileData(data)) {
             throw new Error("Update not allowed");
         }
 
