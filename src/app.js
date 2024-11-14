@@ -1,14 +1,18 @@
-const express = require("express")
-
+const express = require("express");
+const cors = require("cors"); // Import the cors package
+const jwt = require("jsonwebtoken")
 const app = express();
 const port = 4000;
+
 const connectDB = require("./config/database");
 const User = require("./models/user");
 const validator = require('validator');
-const { validateSignUpData, validateEditProfileData } = require("./utils/validation")
-const bcrypt = require("bcrypt")
-app.use(express.json())
-
+const { validateSignUpData, validateEditProfileData } = require("./utils/validation");
+const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
+const {userAuth} = require("./middlewares/auth")
+app.use(express.json());
+app.use(cookieParser());
 app.post("/signup", async (req, res) => {
 
     try {
@@ -33,6 +37,8 @@ app.post("/signup", async (req, res) => {
     }
 
 })
+
+
 app.post("/login", async (req, res) => {
 
     try {
@@ -45,21 +51,28 @@ app.post("/login", async (req, res) => {
             emailId: emailId
         })
         if (!user) {
-            throw new Error ("Invalid credentials")
+            throw new Error("Invalid credentials")
         }
         //comparing the password and password store in db 
         const isPasswordValid = await bcrypt.compare(password, user?.password);
-        if(isPasswordValid){
+        if (isPasswordValid) {
+            //create a JWT token
+            //information to hide is user id and secret key is devtinder one
+            const token = await jwt.sign({ _id: user._id }, "devTinder192");
+            console.log(token);
+            res.cookie("token", token)
             res.send("Login successful")
-        }else{
+        } else {
             res.status(401).send("Details Invalid")
         }
-        
+
     } catch (error) {
         res.status(400).send("Error signing up  the user:" + error);
     }
 
 })
+
+
 app.get("/userByEmail", async (req, res) => {
 
     //extract email from the req 
@@ -87,6 +100,19 @@ app.get("/userByEmail", async (req, res) => {
         console.log("Error fetching users" + error)
     }
 })
+
+app.get("/profile", userAuth,async (req, res) => {
+
+    const user = req.user ; 
+    res.send(user);
+    try {
+        res.send("User profile successful")
+    } catch (error) {
+        res.status(500).send("Internal Server Error")
+    }
+})
+
+
 app.get("/byId", async (req, res) => {
     const userId = req.body._id;
     console.log(userId);
