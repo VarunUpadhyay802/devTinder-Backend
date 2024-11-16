@@ -10,66 +10,28 @@ const validator = require('validator');
 const { validateSignUpData, validateEditProfileData } = require("./utils/validation");
 const bcrypt = require("bcrypt");
 const cookieParser = require("cookie-parser");
+
 const {userAuth} = require("./middlewares/auth")
+
+const authRouter = require('./routes/auth');
+const profileRouter = require('./routes/profile');
+const userRouter = require('./routes/user');
 app.use(express.json());
 app.use(cookieParser());
-app.post("/signup", async (req, res) => {
 
-    try {
-        //validation of data
-        validateSignUpData(req);
+app.use("/",authRouter);
 
-        const { firstName, lastName, emailId, password } = req.body;
+app.use("/profile",profileRouter);
 
-        //encrypting the password
-        const passwordHash = await bcrypt.hash(password, 10);
-
-        const user = new User({
-            firstName, lastName, emailId, password: passwordHash,
-
-        });
-        //always validate inside try catch , because if something fails your code will not be broken
-        await user.save();
-        res.send("User added successfully")
-
-    } catch (err) {
-        res.status(400).send("Error signing up  the user:" + err.message)
-    }
-
-})
+app.use("/",userRouter);
 
 
-app.post("/login", async (req, res) => {
 
-    try {
-        const { emailId, password } = req.body;
-        //email sanitization 
-        if (!validator.isEmail(emailId)) {
-            throw new Error("not a chance")
-        }
-        const user = await User.findOne({
-            emailId: emailId
-        })
-        if (!user) {
-            throw new Error("Invalid credentials")
-        }
-        //comparing the password and password store in db 
-        const isPasswordValid = await bcrypt.compare(password, user?.password);
-        if (isPasswordValid) {
-            //create a JWT token
-            //information to hide is user id and secret key is devtinder one
-            const token = await jwt.sign({ _id: user._id }, "devTinder192");
-            console.log(token);
-            res.cookie("token", token)
-            res.send("Login successful")
-        } else {
-            res.status(401).send("Details Invalid")
-        }
+app.post("/sendConnectionRequest" ,userAuth, async (req,res)=>{
+    const user = req.user ; 
 
-    } catch (error) {
-        res.status(400).send("Error signing up  the user:" + error);
-    }
-
+    console.log("Connection req sent by " + user.firstName)
+    res.send("Connection request sent successfully by "+user.firstName)
 })
 
 
@@ -101,17 +63,6 @@ app.get("/userByEmail", async (req, res) => {
     }
 })
 
-app.get("/profile", userAuth,async (req, res) => {
-
-    const user = req.user ; 
-    res.send(user);
-    try {
-        res.send("User profile successful")
-    } catch (error) {
-        res.status(500).send("Internal Server Error")
-    }
-})
-
 
 app.get("/byId", async (req, res) => {
     const userId = req.body._id;
@@ -129,6 +80,7 @@ app.get("/byId", async (req, res) => {
 
     }
 })
+
 app.get("/feed", async (req, res) => {
     const userEmail = req.body.emailId;
     try {
@@ -157,27 +109,7 @@ app.delete("/delete", async (req, res) => {
 })
 
 
-app.patch("/user/:userId", async (req, res) => {
-    //data that needs to be updated
-    const data = req.body;
-    const userId = req.params?.userId;
 
-    try {
-        //validation 
-        if (!validateEditProfileData(data)) {
-            throw new Error("Update not allowed");
-        }
-
-        const user = await User.findByIdAndUpdate({ _id: userId }, data, {
-            returnDocument: "before",
-            runValidators: true,
-        });
-        // console.log(user);
-        res.send("user updated succesfully");
-    } catch (error) {
-        res.status(400).send("Something went wrong " + error)
-    }
-})
 
 connectDB().then(() => {
     console.log("Connected to the DB Successfully")

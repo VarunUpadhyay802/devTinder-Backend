@@ -65,5 +65,6 @@ const userSchema = mongoose.Schema({
 
 )
 // how youi create a modal first you enter the namne of the modal and second thing is the schema
+
 const User = mongoose.model("User", userSchema)
 module.exports = User; 
