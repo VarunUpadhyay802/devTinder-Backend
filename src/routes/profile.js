@@ -61,7 +61,7 @@ profileRouter.patch("/password", userAuth, async (req, res) => {
         loggedInuser.password = passwordHash;
         await loggedInuser.save();
         res.json({
-            message : "Password updated successfully"
+            message: "Password updated successfully"
         })
     } catch (error) {
         res.status(500).send("Internal Server error")
