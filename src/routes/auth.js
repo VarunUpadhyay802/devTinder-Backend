@@ -20,6 +20,7 @@ authRouter.post('/signup', async (req,res) => {
 
         });
         //always validate inside try catch , because if something fails your code will not be broken
+        console.log(user)
         const data = await user.save();
         res.json({
             message : "User added successfully",

@@ -31,6 +31,7 @@ connectionRequestSchema.index({ fromUserId: 1, toUserId: 1 });
 //pre is kind of middleware 
 //whenever you are writing a schema method like below , never use arrow function
 //before yous save it this function will be called
+
 connectionRequestSchema.pre("save", function (next) {
     const connectionRequest = this;
     // Check if the fromUserId is same as toUserId
