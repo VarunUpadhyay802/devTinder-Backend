@@ -42,15 +42,20 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
                     fromUserID: loggedInUser._id, status: "accepted"
                 }
             ],
-        }).populate("fromUserId", USER_SAFE_DATA);
+        }).populate("fromUserId", USER_SAFE_DATA).populate("toUserId", USER_SAFE_DATA);
         
         //now those connection requests with fromUserID will be our connections 
-        const data = ConnectionRequests.map((row) => row.fromUserId)
-
-        res.json({
-            message: "succesful",
-            data
-        })
+        console.log(ConnectionRequests);
+        //now we are checking which user to send back , because we can have both 
+        const data = ConnectionRequests.map((row) => {
+            //you can't compare two mongoDB id's , so you are comparing the strings inside the objectID
+          if (row.fromUserId._id.toString() === loggedInUser._id.toString()) {
+            return row.toUserId;
+          }
+          return row.fromUserId;
+        });
+    
+        res.json({ data });
 
     } catch (error) {
         // res.status(400).send("Error : ", error.message);
