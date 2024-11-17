@@ -27,7 +27,7 @@ const userAuth = async (req, res, next) => {
         //if the token is valid and the user is found 
         next();
     } catch (error) {
-        res.status(404).send("Error" + error.message)
+        res.status(404).send("Error : " + error.message)
     }
 }
 

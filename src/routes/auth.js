@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt')
 const authRouter = express.Router();
 const jwt = require('jsonwebtoken')
 const validator = require('validator')
-authRouter.post('/signup', async (req,res) => {
+authRouter.post('/signup', async (req, res) => {
     try {
         //validation of data
         validateSignUpData(req);
@@ -23,10 +23,10 @@ authRouter.post('/signup', async (req,res) => {
         console.log(user)
         const data = await user.save();
         res.json({
-            message : "User added successfully",
-            data : data 
+            message: "User added successfully",
+            data: data
         })
-      
+
 
     } catch (err) {
         res.status(400).send("Error signing up  the user:" + err.message)
@@ -53,16 +53,16 @@ authRouter.post("/login", async (req, res) => {
         if (isPasswordValid) {
             //create a JWT token
             //information to hide is user id and secret key is devtinder one
-            const token =  jwt.sign({ _id: user._id }, "devTinder192");
+            const token = jwt.sign({ _id: user._id }, "devTinder192");
             console.log(token);
-            res.cookie("token", token,{
-                expires : new Date (Date.now() + 8*3600000)
+            res.cookie("token", token, {
+                expires: new Date(Date.now() + 8 * 3600000)
             })
             res.json({
-                messsage : "Login successful",
-                data : user
+                messsage: "Login successful",
+                data: user
             })
-         
+
         } else {
             res.status(401).send("Details Invalid")
         }
@@ -75,10 +75,10 @@ authRouter.post("/login", async (req, res) => {
 
 
 //setting the token to null 
-authRouter.post("/logout",async (req,res)=>{
-    res.cookie("token", null,{
-        expires : new Date (Date.now())
-    }) 
+authRouter.post("/logout", async (req, res) => {
+    res.cookie("token", null, {
+        expires: new Date(Date.now())
+    })
     res.status(200).send("User succesfully Logged out ")
 })
 
