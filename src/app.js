@@ -83,15 +83,6 @@ app.get("/byId", async (req, res) => {
     }
 })
 
-app.get("/feed", async (req, res) => {
-    const userEmail = req.body.emailId;
-    try {
-        const user = await User.find({});
-        res.send(user);
-    } catch (error) {
-        console.log("Error fetching users" + error)
-    }
-})
 
 app.delete("/delete", async (req, res) => {
     const userId = req.body._id;

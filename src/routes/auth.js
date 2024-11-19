@@ -10,13 +10,13 @@ authRouter.post('/signup', async (req, res) => {
         //validation of data
         validateSignUpData(req);
 
-        const { firstName, lastName, emailId, password } = req.body;
+        const { firstName, lastName, emailId, password ,gender , about , skills} = req.body;
 
         //encrypting the password
         const passwordHash = await bcrypt.hash(password, 10);
 
         const user = new User({
-            firstName, lastName, emailId, password: passwordHash,
+            firstName, lastName, emailId, password: passwordHash,gender , about , skills
 
         });
         //always validate inside try catch , because if something fails your code will not be broken
