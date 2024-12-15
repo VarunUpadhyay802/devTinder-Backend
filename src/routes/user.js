@@ -55,7 +55,7 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
             }
             return row.fromUserId;
         });
-        if(data.length==0) return res.send("No Connections ")
+        if (data.length == 0) return res.send("No Connections ")
         res.json({ data });
 
     } catch (error) {
@@ -67,6 +67,12 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
 userRouter.get("/user/feed", userAuth, async (req, res) => {
 
     try {
+        const page = parseInt(req.query.page) || 1;
+        let limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        // if(limit > 50 ) return 50 , otherwise limit 
+        limit = limit > 50 ? 50 : limit;
         const loggedInUser = req.user;
         //find all the connection requests which are pending , so those users can't be in the feed right 
         const connectionRequests = await ConnectionRequest.find({
@@ -78,8 +84,8 @@ userRouter.get("/user/feed", userAuth, async (req, res) => {
         }).select("fromUserId , toUserId");
 
         //logic is : return me the userId other then loggedInuser Id
-        const hideUsersFromFeed = new Set ();
-        connectionRequests.forEach((req)=>{
+        const hideUsersFromFeed = new Set();
+        connectionRequests.forEach((req) => {
             hideUsersFromFeed.add(req.fromUserId.toString());
             hideUsersFromFeed.add(req.toUserId.toString());
         })
@@ -90,12 +96,12 @@ userRouter.get("/user/feed", userAuth, async (req, res) => {
         // first we did like  above then we needed another condition so we combined them in and operator
 
         const users = await User.find({
-            $and:[
-                {_id: {$nin : Array.from(hideUsersFromFeed)}},
-                {_id : {$ne : loggedInUser._id}}
-                
+            $and: [
+                { _id: { $nin: Array.from(hideUsersFromFeed) } },
+                { _id: { $ne: loggedInUser._id } }
+
             ]
-        }).select(USER_SAFE_DATA)
+        }).select(USER_SAFE_DATA).skip(skip).limit(limit);
         res.send(users)
     } catch (error) {
         // res.status(400).send("Error : ", error.message);
