@@ -1,5 +1,4 @@
 const express = require("express");
-const cors = require("cors"); // Import the cors package
 const jwt = require("jsonwebtoken")
 const app = express();
 const port = 4000;
@@ -11,108 +10,108 @@ const { validateSignUpData, validateEditProfileData } = require("./utils/validat
 const bcrypt = require("bcrypt");
 const cookieParser = require("cookie-parser");
 
-// const {userAuth} = require("./middlewares/auth")
+const { userAuth } = require("./middlewares/auth")
 
-// const authRouter = require('./routes/auth');
-// const profileRouter = require('./routes/profile');
-// const userRouter = require('./routes/user');
-// const requestRouter = require('./routes/requests');
-// app.use(express.json());
-// app.use(cookieParser());
+const authRouter = require('./routes/auth');
+const profileRouter = require('./routes/profile');
+const userRouter = require('./routes/user');
+const requestRouter = require('./routes/requests');
+const cors = require('cors')
+app.use(cors({
+    origin: 'http://localhost:5173', 
+    credentials: true, // Allows cookies to be sent
+}));
 
-// app.use("/",authRouter);
+app.use(express.json());
+app.use(cookieParser());
 
-// app.use("/profile",profileRouter);
+app.use("/", authRouter);
 
-// app.use("/",userRouter);
-// app.use("/" ,requestRouter)
+app.use("/profile", profileRouter);
 
-
-
-// app.post("/sendConnectionRequest" ,userAuth, async (req,res)=>{
-//     const user = req.user ; 
-
-//     console.log("Connection req sent by " + user.firstName)
-//     res.send("Connection request sent successfully by "+user.firstName)
-// })
+app.use("/", userRouter);
+app.use("/", requestRouter)
 
 
-// app.get("/userByEmail", async (req, res) => {
 
-//     //extract email from the req 
-//     const userEmail = req.body.emailId;
-//     console.log(userEmail)
-//     try {
-//         const user = await User.findOne({
-//             emailId: userEmail
-//         });
+app.post("/sendConnectionRequest", userAuth, async (req, res) => {
+    const user = req.user;
 
-//         // if (user.length === 0) {
-//         //     res.status(404).send("User not found ")
-//         // } else {
-//         //     res.send(user);
-//         // }
-
-//         if (user) {
-//             res.send(user)
-//         } else {
-//             res.status(404).send("User not found ");
-//         }
+    console.log("Connection req sent by " + user.firstName)
+    res.send("Connection request sent successfully by " + user.firstName)
+})
 
 
-//     } catch (error) {
-//         console.log("Error fetching users" + error)
-//     }
-// })
+app.get("/userByEmail", async (req, res) => {
+
+    //extract email from the req 
+    const userEmail = req.body.emailId;
+    console.log(userEmail)
+    try {
+        const user = await User.findOne({
+            emailId: userEmail
+        });
+
+        // if (user.length === 0) {
+        //     res.status(404).send("User not found ")
+        // } else {
+        //     res.send(user);
+        // }
+
+        if (user) {
+            res.send(user)
+        } else {
+            res.status(404).send("User not found ");
+        }
 
 
-// app.get("/byId", async (req, res) => {
-//     const userId = req.body._id;
-//     console.log(userId);
-
-//     try {
-//         const user = await User.findById({ _id: userId })
-//         if (user) {
-//             res.send(user);
-//         } else {
-//             res.status(404).send("User not found ")
-//         }
-
-//     } catch (error) {
-
-//     }
-// })
+    } catch (error) {
+        console.log("Error fetching users" + error)
+    }
+})
 
 
-// app.delete("/delete", async (req, res) => {
-//     const userId = req.body._id;
-//     console.log(userId);
-//     const user = await User.findById({ _id: userId })
-//     try {
-//         if (user) {
-//             await User.findByIdAndDelete({ userId });
-//             res.send("User deleted successfully")
-//         } else {
-//             res.status(404).send("No user with this Id ")
-//         }
+app.get("/byId", async (req, res) => {
+    const userId = req.body._id;
+    console.log(userId);
 
-//     } catch (error) {
-//         res.status(500).send("something went wrong")
-//     }
-// })
+    try {
+        const user = await User.findById({ _id: userId })
+        if (user) {
+            res.send(user);
+        } else {
+            res.status(404).send("User not found ")
+        }
 
-app.use("/",(req,res,next)=>{
-    res.json({
-        message:"I am successfully implemented",
-        
-    })
-},)
-app.use("/user", (req,res)=>{
-    console.log("is this the end ");
-    res.json({
-        message:"below down here",
-        
-    })
+    } catch (error) {
+
+    }
+})
+
+
+app.delete("/delete", async (req, res) => {
+    const userId = req.body._id;
+    console.log(userId);
+    const user = await User.findById({ _id: userId })
+    try {
+        if (user) {
+            await User.findByIdAndDelete({ userId });
+            res.send("User deleted successfully")
+        } else {
+            res.status(404).send("No user with this Id ")
+        }
+
+    } catch (error) {
+        res.status(500).send("something went wrong")
+    }
+})
+
+app.use("/ssdf", (req, res) => {
+    const token = "ksdfjds";
+    const isAuthorized = (token === 'xyz');
+    if (!isAuthorized) {
+        res.error()
+    } else next()
 })
 
 
